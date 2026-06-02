@@ -747,6 +747,10 @@
           title="Always show correct answer after choosing">
           <span class="dot"></span> Auto-Reveal Answer
         </button>
+        <!-- <button class="toggle-btn" id="autoRevealExpBtn" onclick="toggleAutoRevealExplanation()"
+          title="Always show explanation immediately">
+          <span class="dot"></span> Auto-Reveal Explanation
+        </button> -->
       </div>
     </div>
   </header>
@@ -857,6 +861,7 @@
 
     // ── Shared display state ──
     let autoReveal = false;
+    let autoRevealExplanation = false;
 
     // ── Helpers ──
     const S = () => sections[activeSection];
@@ -1057,6 +1062,7 @@
       get('btnPrev').disabled = st.idx === 0;
       get('btnNext').disabled = st.idx === st.filteredQ.length - 1;
 
+      updateExplanationVisibility();
       updateProgress();
     }
 
@@ -1085,6 +1091,7 @@
       get('btnReveal').style.display = 'none';
       get('resultBanner').className = 'result-banner show correct-result';
       get('resultBanner').textContent = `Answer revealed: Option ${['A', 'B', 'C', 'D', 'E'][q.correctIdx] || q.correctIdx + 1}`;
+      updateExplanationVisibility();
     }
 
     function navigate(dir) {
@@ -1103,9 +1110,24 @@
       renderQuestion();
     }
 
-    function toggleExplanation() {
-      explanationOpen = !explanationOpen;
-      get('explanationSection').className = 'explanation-section' + (explanationOpen ? ' visible' : '');
+    function toggleAutoRevealExplanation() {
+      autoRevealExplanation = !autoRevealExplanation;
+      get('autoRevealExpBtn').classList.toggle('active', autoRevealExplanation);
+      updateExplanationVisibility();
+    }
+
+    function updateExplanationVisibility() {
+      const st = S();
+      if (!st.filteredQ || !st.filteredQ.length) {
+        get('explanationSection').style.display = 'none';
+        return;
+      }
+      const q = st.filteredQ[st.idx];
+      const ansKey = st.filter + '_' + st.idx;
+      const answered = st.answers[ansKey] !== undefined;
+      const revealed = answered || autoReveal || (get('btnReveal').style.display === 'none');
+      const shouldShow = autoRevealExplanation || revealed;
+      get('explanationSection').style.display = shouldShow ? '' : 'none';
     }
 
     function toggleAutoReveal() {
